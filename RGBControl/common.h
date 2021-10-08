@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <string>
+#include "Writer.hpp"
+#include "Parser.hpp"
 
 enum class MessageHeader : uint8_t
 {
