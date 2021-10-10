@@ -150,7 +150,6 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="Parser.hpp" />
     <ClInclude Include="Socket\defines.h" />
-    <ClInclude Include="Socket\IOContext_Win32.h" />
     <ClInclude Include="Socket\IPAddress.h" />
     <ClInclude Include="Socket\Socket.h" />
     <ClInclude Include="Socket\TCP\AsyncClient.h" />

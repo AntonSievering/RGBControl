@@ -1,9 +1,19 @@
-#include "IOContext_Win32.h"
-
-
 #ifdef _WIN32
+#include <Winsock2.h>
 
-// only nessesary on Windows
-Socket::IOContext g_ioContext{};
+class IOContext
+{
+public:
+	IOContext() noexcept
+	{
+		WSAData wsaData{};
+		(void)WSAStartup(MAKEWORD(2, 2), &wsaData);
+	}
+
+	~IOContext() noexcept
+	{
+		WSACleanup();
+	}
+} g_ioContext{};
 
 #endif
