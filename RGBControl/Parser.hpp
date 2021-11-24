@@ -34,12 +34,12 @@ public:
 		if (bytes > size()) throw std::out_of_range({});
 
 		for (size_t i = 0; i < std::min(bytes, size()); i++)
-			((char *)ptr)[i] = m_sContent.at(i);
+			((char *)ptr)[i] = m_sContent.at(i + m_nOffset);
 		m_nOffset += bytes;
 	}
 
 	template <class T>
-	T parse() noexcept
+	T parse() noexcept(false)
 	{
 		T t{};
 		parse(&t, sizeof(T));

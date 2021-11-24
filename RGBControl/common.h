@@ -8,22 +8,27 @@
 enum class MessageHeader : uint8_t
 {
 	// GETs
-	GET_LED_COUNT = 0,
-	GET_PIXEL = 1,
+	GET_LED_COUNT  = 0,
+	GET_PIXEL      = 1,
 	GET_ALL_PIXELS = 2,
+	GET_JOB_COUNT  = 3,
+	GET_JOB        = 4,
+	GET_JOBS       = 5,
 
 	// SETs
-	SET_PIXEL = 10,
-	SET_ALL_PIXELS = 11,
+	SET_PIXEL              = 10,
+	SET_ALL_PIXELS         = 11,
 	SET_ALL_PIXELS_UNIFORM = 12,
+	ADD_JOB                = 13,
+	REMOVE_JOB             = 14,
 
 	// RETURNs
-	RETURN_OK = 20,
-	RETURN_ERROR = 21,
+	RETURN_OK      = 20,
+	RETURN_ERROR   = 21,
 	RETURN_FAILURE = 22,
 
 	// PING
-	PING = 30
+	PING = 30,
 };
 
 union int_t
@@ -33,50 +38,10 @@ union int_t
 	uint32_t u32;
 };
 
-static std::string u32ToString(const uint32_t index) noexcept
-{
-	int_t v{};
-	v.u32 = index;
-
-	std::string s(4, ' ');
-	for (int i = 0; i < 4; i++)
-		s.at(i) = v.u8[3 - i];
-
-	return s;
-}
-
-static uint32_t readu32(const std::string &src, size_t offset) noexcept
-{
-	int_t v{};
-	
-	for (size_t i = 0; i < 4; i++)
-		v.u8[3 - i] = src.at(i + offset);
-
-	return v.u32;
-}
-
 struct Pixel
 {
 	uint8_t r, g, b;
 };
-
-static Pixel readPixel(const std::string &src, size_t offset) noexcept
-{
-	Pixel p;
-	p.r = src.at(offset);
-	p.g = src.at(offset + 1);
-	p.b = src.at(offset + 2);
-	return p;
-}
-
-static std::string colorToString(const Pixel &pixel) noexcept
-{
-	std::string s(3, pixel.r);
-	s.at(1) = pixel.g;
-	s.at(2) = pixel.b;
-
-	return s;
-}
 
 
 struct Packet
@@ -104,9 +69,11 @@ public:
 public:
 	std::string asString() const noexcept
 	{
-		std::string s(1, (uint8_t)header);
-		s += u32ToString(nMessageSize);
-		return s + sMessage;
+		Writer writer;
+		writer.write(header);
+		writer.write(nMessageSize);
+
+		return writer.getContent() + sMessage;
 	}
 };
 
@@ -117,7 +84,9 @@ static Packet createGetLedCountPacket() noexcept
 
 static Packet createGetPixelPacket(const uint32_t index) noexcept
 {
-	return Packet(MessageHeader::GET_PIXEL, u32ToString(index));
+	Writer writer;
+	writer.write(index);
+	return Packet(MessageHeader::GET_PIXEL, writer.getContent());
 }
 
 static Packet createGetAllPixelsPacket() noexcept
@@ -125,10 +94,12 @@ static Packet createGetAllPixelsPacket() noexcept
 	return Packet(MessageHeader::GET_ALL_PIXELS);
 }
 
-static Packet createSetPixel(const uint32_t index, const Pixel pixel) noexcept
+static Packet createSetPixelPacket(const uint32_t index, const Pixel pixel) noexcept
 {
-	std::string msg = u32ToString(index) + colorToString(pixel);
-	return Packet(MessageHeader::SET_PIXEL, msg);
+	Writer writer;
+	writer.write(index);
+	writer.write(pixel);
+	return Packet(MessageHeader::SET_PIXEL, writer.getContent());
 }
 
 static Packet createSetAllPixelsPacket(const std::vector<Pixel> &vPixels) noexcept
@@ -146,5 +117,7 @@ static Packet createSetAllPixelsPacket(const std::vector<Pixel> &vPixels) noexce
 
 static Packet createSetAllPixelsUniformPacket(const Pixel col) noexcept
 {
-	return Packet(MessageHeader::SET_ALL_PIXELS_UNIFORM, colorToString(col));
+	Writer writer;
+	writer.write(col);
+	return Packet(MessageHeader::SET_ALL_PIXELS_UNIFORM, writer.getContent());
 }
